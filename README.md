@@ -7,3 +7,14 @@ When possibly, I prefer to keep all configuration in the Yaml files and rely on 
 In these examples I use the fictitious domain `dev.mytraefik.com` and I use Namecheap for ACME (Let's Encrypt) DNS challenge. For persistent storage I use a NFS version 4 mount with the address of `nas.local`
 
 The network `web` is a pre-existing network created on the swarm that is used by Traefik.
+
+
+|  Deployment |  Yaml |
+|---|---|
+| Traefik 2.x  |  docker-stack-deploy-traefik.yml |
+| Nexus V3  | docker-stack-deploy-nexus.yml  |
+|   |   |
+|   |   |
+
+
+## Trafik 2.x
