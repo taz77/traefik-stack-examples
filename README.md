@@ -15,7 +15,7 @@ The version of Docker Compose Yaml for stack deployment will vary in this reposi
 |---|---|
 | Traefik 2.x  |  docker-stack-deploy-traefik.yml |
 | Nexus V3  | docker-stack-deploy-nexus.yml  |
-|   |   |
+| Portainer  | docker-stack-deploy-portainer.yml  |
 |   |   |
 
 
