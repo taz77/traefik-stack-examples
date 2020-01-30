@@ -8,6 +8,8 @@ In these examples I use the fictitious domain `dev.mytraefik.com` and I use Name
 
 The network `web` is a pre-existing network created on the swarm that is used by Traefik.
 
+The version of Docker Compose Yaml for stack deployment will vary in this repository as I have not went through them all to update and get on the same version.
+
 
 |  Deployment |  Yaml |
 |---|---|
