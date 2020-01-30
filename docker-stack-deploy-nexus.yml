@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+    nexus:
+        image: sonatype/nexus3:latest
+        hostname: nexus
+        user: root
+        environment:
+            NEXUS_CONTEXT: v3
+        networks:
+            - web
+        volumes:
+         - type: volume
+           source: nexus_data
+           target: /nexus-data
+           volume:
+            nocopy: true
+        deploy:
+            labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.nexus.rule=Host(`nexus.dev.ruinix.com`)"
+                - "traefik.http.routers.nexus.service=nexus-service"
+                - "traefik.http.services.nexus-service.loadbalancer.server.port=8081"
+                - "traefik.http.routers.nexus.entrypoints=websecure"
+                - "traefik.http.routers.nexus.tls=true"
+                - "traefik.http.routers.nexus.tls.certresolver=ruinix"
+                - "traefik.http.routers.docker.rule=Host(`registry.dev.ruinix.com`)"
+                - "traefik.http.routers.docker.service=docker-service"
+                - "traefik.http.services.docker-service.loadbalancer.server.port=5000"
+                - "traefik.http.routers.docker.entrypoints=docker"
+                - "traefik.http.routers.docker.tls=true"
+                - "traefik.http.routers.docker.tls.certresolver=ruinix"
+networks:
+    web:
+        external: true
+volumes:
+    nexus_data:
+     driver: local
+     driver_opts:
+      type: nfs
+      o: addr=nas.fastglass.net.home,vers=4,hard,intr,timeo=180,bg,tcp,rw
+      device: ":/mnt/nas01/docker/nexus_data" 
