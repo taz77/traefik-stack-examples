@@ -1,0 +1,97 @@
+version: "3.7"
+services:
+  traefik:
+    image: traefik:latest
+    environment:
+      NAMECHEAP_API_USER: namcheapusername  
+      NAMECHEAP_API_KEY: 123432asdfsadfas1234123
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.network=web"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.docker.address=:5000"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/opt/traefik/log/access.log"
+      - "--certificatesResolvers.mytraefik-resolver.acme.email=admin@mytraefik.com"
+      - "--certificatesResolvers.mytraefik-resolver.acme.storage=/opt/traefik/certs/acme.json"
+      - "--certificatesResolvers.mytraefik-resolver.acme.httpChallenge.entryPoint=web"
+      - "--certificatesResolvers.namecheap.acme.dnsChallenge.provider=namecheap"
+      - "--certificatesResolvers.namecheap.acme.dnsChallenge.delayBeforeCheck=0"
+      - "--metrics.prometheus=true"
+      - "--entrypoints.metrics.address=:8082"
+      - "--metrics.prometheus.entrypoint=metrics"
+    volumes:
+      - type: volume
+        source: traefikstorage
+        target: /opt/traefik
+        volume:
+          nocopy: true
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - web
+      - behindproxy
+      - monitornet
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5000:5000"
+      - "8580:8080"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.traefik_http.rule=Host(`traefik.local`)"
+        - "traefik.http.services.traefik_http.loadbalancer.server.port=8080"
+        - "traefik.http.routers.traefik_http.middlewares=traefik-auth"
+        - "traefik.http.routers.traefik_http.entryPoints=web"
+        # You can use the following command to generate user:password pairs. Change "user" and "password" to your needs.
+        # echo $(htpasswd -nb user password) | sed -e s/\\$/\\$\\$/g
+        - "traefik.http.middlewares.traefik-auth.basicauth.users=user:$$apr1$$zL3YVoMn$$v3vNY/Do5gzj4qGd65lxw0"
+  certdump:
+    image: ldez/traefik-certs-dumper:latest
+    command: "file --dest '/dump' --domain-subdir=true --source '/traefik/certs/acme.json'  --key-name=privkey --crt-name=fullchain --version v2 --watch"
+    volumes:
+      - type: volume
+        source: traefikstorage
+        target: /traefik
+        volume:
+          nocopy: true
+      - type: volume
+        source: sslstorage
+        target: /dump
+        volume:
+          nocopy: true
+networks:
+  monitornet:
+    external: true
+  web:
+    external: true
+  behindproxy:
+    external: true
+volumes:
+  traefikstorage:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nas.local,vers=4,hard,intr,timeo=180,bg,tcp,rw
+      device: ":/mnt/nas01/docker/traefik"
+  sslstorage:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nas.local,vers=4,hard,intr,timeo=180,bg,tcp,rw
+      device: ":/mnt/nas01/docker/ssl"
