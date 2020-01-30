@@ -5,3 +5,5 @@ At the time of starting this repository, there is a lack of good examples for Tr
 When possibly, I prefer to keep all configuration in the Yaml files and rely on configuration files as little as possible - especially with Traefik container itself. I have avoided the use of a TOML file.
 
 In these examples I use the fictitious domain `dev.mytraefik.com` and I use Namecheap for ACME (Let's Encrypt) DNS challenge. For persistent storage I use a NFS version 4 mount with the address of `nas.local`
+
+The network `web` is a pre-existing network created on the swarm that is used by Traefik.
