@@ -1,0 +1,79 @@
+version: '3.5'
+services:
+  woodpecker-server:
+    image: laszlocloud/woodpecker-server:v0.9.2
+    volumes:
+        - type: volume
+          source: woodpecker-master-data
+          target: /var/lib/drone/
+          volume:
+            nocopy: true
+    environment:
+      DRONE_OPEN: 'true'
+      DRONE_HOST: https://ci.dev.mytraefik.com
+      DRONE_BITBUCKET: 'true'
+      DRONE_SECRET: 132412341234qwsdfqwerqwer134q3
+      DRONE_BITBUCKET_CLIENT: asdfasdfasdfasdf
+      DRONE_BITBUCKET_SECRET: adsfasdfasdf134123412asdfasdfas
+      DRONE_ADMIN: bowens06
+    networks:
+      - web
+      - ci
+      - monitornet
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.woodpecker.rule=Host(`ci.dev.mytraefik.com`)"
+        - "traefik.http.routers.woodpecker.service=woodpecker-service"
+        - "traefik.http.services.woodpecker-service.loadbalancer.server.port=8000"
+        - "traefik.http.routers.woodpecker.entrypoints=websecure"
+        - "traefik.http.routers.woodpecker.tls=true"
+        - "traefik.http.routers.woodpecker.tls.certresolver=mytraefik-resolver"
+      endpoint_mode: dnsrr
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        order: start-first
+        monitor: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+  woodpecker-agent:
+    image: laszlocloud/woodpecker-agent:v0.9.2
+    command: agent
+    depends_on:
+      - woodpecker-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ci
+    environment:
+        DRONE_SERVER: woodpecker-server:9000
+        DRONE_SECRET: 132412341234qwsdfqwerqwer134q3
+    deploy:
+      endpoint_mode: dnsrr
+      mode: replicated
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        order: start-first
+        monitor: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+networks:
+  web:
+    external: true
+  ci:
+  monitornet:
+    external: true
+volumes:
+  woodpecker-master-data:
+    driver: local
