@@ -20,4 +20,4 @@ The version of Docker Compose Yaml for stack deployment will vary in this reposi
 
 
 ## Trafik 2.x
-The main reason you are here. The Traefik 2.x stack deployment has two containers with the first obviously being Traefik. The second container is used to explor the SSL certificates from the JSON file that Traefik uses to store them to indiviual PEM files with appropriate private keys and chains as necesssary. I have added this because sometimes a container needs to have the certificates being used to encrypt the traffic to the container.
+The main reason you are here. The Traefik 2.x stack deployment has two containers with the first obviously being Traefik. The second container is used to export the SSL certificates from the JSON file that Traefik uses to store them to indiviual PEM files with appropriate private keys and chains as necesssary. I have added this because sometimes a container needs to have the certificates being used to encrypt the traffic to the container.
