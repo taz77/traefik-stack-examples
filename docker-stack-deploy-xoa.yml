@@ -1,0 +1,55 @@
+version: "3.7"
+services:
+    xoa:
+        image: ronivay/xen-orchestra
+        networks:
+          - web
+        volumes:
+          - type: volume
+            source: redis
+            target: /var/lib/redis
+            volume:
+              nocopy: true
+          - type: volume
+            source: xoserver
+            target: /var/lib/xo-server
+            volume:
+              nocopy: true
+          - type: volume
+            source: vms
+            target: /vms
+            volume:
+              nocopy: true
+        deploy:
+          labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.xoa.rule=Host(`xoa.dev.mytraefik.com`)"
+            - "traefik.http.routers.xoa.service=xoa-service"
+            - "traefik.http.services.xoa-service.loadbalancer.server.port=80"
+            - "traefik.http.routers.xoa.entrypoints=websecure"
+            - "traefik.http.routers.xoa.tls=true"
+            - "traefik.http.routers.xoa.tls.certresolver=mytraefik-resolver"
+networks:
+    web:
+        external: true
+volumes:
+    redis:
+     driver: local
+     driver_opts:
+      type: nfs
+      o: addr=nas.local,vers=4,hard,intr,timeo=180,bg,tcp,rw
+      device: ":/mnt/nas01/xoa-redis"
+    xoserver:
+     driver: local
+     driver_opts:
+      type: nfs
+      o: addr=nas.local,vers=4,hard,intr,timeo=180,bg,tcp,rw
+      device: ":/mnt/nas01/xoa-xo-server"
+    # Xen Orchestra cannot mount an NFS drive from inside the container so we provide one
+    # to use for VM backups that is a local path mapped to an NFS share at the container level
+    vms:
+      driver: local
+      driver_opts:
+        type: nfs
+        o: addr=nas.local,vers=4,hard,intr,timeo=180,bg,tcp,rw
+        device: ":/mnt/nas01/xcp-vms"
