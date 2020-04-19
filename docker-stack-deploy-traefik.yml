@@ -88,10 +88,10 @@ volumes:
     driver_opts:
       type: nfs
       o: addr=nas.local,vers=4,hard,intr,timeo=180,bg,tcp,rw
-      device: ":/mnt/nas01/docker/traefik"
+      device: ":/mnt/nas01/traefik-traefik"
   sslstorage:
     driver: local
     driver_opts:
       type: nfs
       o: addr=nas.local,vers=4,hard,intr,timeo=180,bg,tcp,rw
-      device: ":/mnt/nas01/docker/ssl"
+      device: ":/mnt/nas01/traefik-ssl"
